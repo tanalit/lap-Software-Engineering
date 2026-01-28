@@ -99,8 +99,13 @@ public class LibraryService {
     // Return a book (update the borrowing record with the return date)
     public void returnBook(Long recordId, LocalDate returnDate) {
         BorrowingRecord record = borrowingRecords.get(recordId);
-        // Increase the available copies of the book
-        Book book = books.get(record.getBookId());
-        book.setAvailableCopies(book.getAvailableCopies() +1 );
+        if (record != null) {
+            record.setReturnDate(returnDate);
+            // Increase the available copies of the book
+            Book book = books.get(record.getBookId());
+            if (book != null) {
+                book.setAvailableCopies(book.getAvailableCopies() + 1);
+            }
+        }
     }
 }

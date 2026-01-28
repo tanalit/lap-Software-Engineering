@@ -50,7 +50,7 @@ public class BorrowingRecord {
         return memberId;
     }
 
-    public void setMember(Long memberId) {
+    public void setMemberId(Long memberId) {
         this.memberId = memberId;
     }
 

@@ -28,12 +28,59 @@ public class LibraryController {
 
     // ==================== Book Endpoints ====================
 
-    // Get all books
+    // Get all books or filter by optional author and/or genre
     @GetMapping("/books")
-    public ResponseEntity<Collection<Book>> getAllBooks() {
-        Collection<Book> books = libraryService.getAllBooks();
-        logger.info("The list of books returned"+books);
+    public ResponseEntity<Collection<Book>> getAllBooks(
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String genre) {
+        Collection<Book> books;
+        if (author != null) {
+            books = libraryService.getBooksByAuthorAndGenre(author, genre);
+        } else if (genre != null) {
+            books = libraryService.getBooksByGenre(genre);
+        } else {
+            books = libraryService.getAllBooks();
+        }
+        logger.info("The list of books returned" + books);
         return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+
+    // Get books by genre (query parameter)
+    @GetMapping("/books/genre")
+    public ResponseEntity<Collection<Book>> getBooksByGenre(@RequestParam String genre) {
+        Collection<Book> books = libraryService.getBooksByGenre(genre);
+        logger.info("The books retrieved for genre " + genre);
+        return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+
+    // Get books by author with optional genre filter
+    @GetMapping("/books/author/{author}")
+    public ResponseEntity<Collection<Book>> checkGenreForAuthor(
+            @PathVariable String author,
+            @RequestParam(required = false) String genre) {
+        Collection<Book> books = libraryService.getBooksByAuthorAndGenre(author, genre);
+        logger.info("The books retrieved for the author and genre " + author + " - " + genre);
+        return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+
+    // Get books due on a specified date (format dd/MM/yyyy)
+    @GetMapping("/books/dueondate")
+    public ResponseEntity<Collection<Book>> getBooksDueOnDate(
+            @RequestParam("dueDate") @DateTimeFormat(pattern = "dd/MM/yyyy") LocalDate dueDate) {
+        Collection<Book> books = libraryService.getBooksDueOnDate(dueDate);
+        logger.info("The books retrieved by due date " + dueDate);
+        return new ResponseEntity<>(books, HttpStatus.OK);
+    }
+
+    // Check earliest availability date for a book
+    @GetMapping("/bookavailabileDate")
+    public ResponseEntity<LocalDate> checkAvailability(@RequestParam Long bookId) {
+        LocalDate avlDate = libraryService.checkAvailability(bookId);
+        if (avlDate == null) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else {
+            return new ResponseEntity<>(avlDate, HttpStatus.OK);
+        }
     }
 
     // Get a book by ID

@@ -108,4 +108,61 @@ public class LibraryService {
             }
         }
     }
+
+    // ==================== Additional service methods for lab ====================
+
+    // Get books by genre (case-insensitive, partial match)
+    public Collection<Book> getBooksByGenre(String genre) {
+        Collection<Book> allBooks = (Collection<Book>)(books.values());
+        return allBooks.stream()
+                .filter(book -> book.getGenre() != null && book.getGenre().toLowerCase().contains(genre.toLowerCase()))
+                .collect(Collectors.toList());
+    }
+
+    // Get books by author and optional genre filter
+    public Collection<Book> getBooksByAuthorAndGenre(String author, String genre) {
+        Collection<Book> allBooks = (Collection<Book>)(books.values());
+        return allBooks.stream()
+                .filter(book -> book.getAuthor() != null && book.getAuthor().equalsIgnoreCase(author))
+                .filter(book -> genre == null || (book.getGenre() != null && book.getGenre().toLowerCase().contains(genre.toLowerCase())))
+                .collect(Collectors.toList());
+    }
+
+    // Get books that are due on a specific date
+    public Collection<Book> getBooksDueOnDate(LocalDate dueDate) {
+        Collection<BorrowingRecord> allRecords = (Collection<BorrowingRecord>)(borrowingRecords.values());
+        ArrayList<Book> dueBooks = new ArrayList<Book>();
+        Collection<BorrowingRecord> tempRecords = allRecords.stream()
+                .filter(record -> record.getDueDate() != null && record.getDueDate().equals(dueDate))
+                .collect(Collectors.toList());
+        for (BorrowingRecord record : tempRecords) {
+            Book book = books.get(record.getBookId());
+            if (book != null) {
+                dueBooks.add(book);
+            }
+        }
+        return dueBooks;
+    }
+
+    // Check earliest availability date for a book (return null if book not found)
+    public LocalDate checkAvailability(Long bookId) {
+        Collection<BorrowingRecord> allRecords = (Collection<BorrowingRecord>)(borrowingRecords.values());
+        Book bookToCheck = books.get(bookId);
+        if (bookToCheck == null) {
+            return null;
+        } else {
+            if (bookToCheck.getAvailableCopies() >= 1) {
+                return LocalDate.now();
+            } else {
+                List<BorrowingRecord> sortedRecords = allRecords.stream()
+                        .filter(record -> record.getBookId() != null && record.getBookId().equals(bookId))
+                        .sorted((b1, b2) -> b1.getDueDate().compareTo(b2.getDueDate()))
+                        .collect(Collectors.toList());
+                if (sortedRecords.isEmpty()) {
+                    return null;
+                }
+                return sortedRecords.get(0).getDueDate();
+            }
+        }
+    }
 }

@@ -1,18 +1,30 @@
 package com.app.library.models;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@Entity
+@Table(name = "borrowing_records")
 public class BorrowingRecord {
 
-	private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-	@JsonProperty("bookId")
-	private Long bookId;
+    @JsonProperty("bookId")
+    @Column(name = "book_id")
+    private Long bookId;
     
-	@JsonProperty("memberId")
-	private Long memberId;
+    @JsonProperty("memberId")
+    @Column(name = "member_id")
+    private Long memberId;
 
     private LocalDate borrowDate;
     private LocalDate returnDate;

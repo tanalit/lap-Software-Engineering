@@ -41,8 +41,9 @@ public class LibraryService {
 
     // Add a new book
     public void addBook(Book book) {
-        Book saved = bookRepository.save(book);
-        book.setId(saved.getId());
+        // Ensure we persist a new entity regardless of client-provided id
+        book.setId(null);
+        bookRepository.save(book);
     }
 
     // Update a book
@@ -69,8 +70,9 @@ public class LibraryService {
 
     // Add a new member
     public void addMember(Member member) {
-        Member saved = memberRepository.save(member);
-        member.setId(saved.getId());
+        // Ensure we persist a new entity regardless of client-provided id
+        member.setId(null);
+        memberRepository.save(member);
     }
 
     // Update a member
@@ -123,5 +125,44 @@ public class LibraryService {
             book.setAvailableCopies(book.getAvailableCopies() + 1);
             bookRepository.save(book);
         }
+    }
+
+    // Get books by genre
+    public Collection<Book> getBooksByGenre(String genre) {
+        if (genre == null) return getAllBooks();
+        return bookRepository.findByGenre(genre);
+    }
+
+    // Get books by author and optional genre
+    public Collection<Book> getBooksByAuthorAndGenre(String author, String genre) {
+        if (author == null) return getAllBooks();
+        if (genre == null) {
+            return bookRepository.findByAuthor(author);
+        } else {
+            return bookRepository.findByAuthorAndGenre(author, genre);
+        }
+    }
+
+    // Get books that are due on a specific date
+    public Collection<Book> getBooksDueOnDate(LocalDate dueDate) {
+        List<BorrowingRecord> records = recordRepository.findByDueDate(dueDate);
+        return records.stream()
+                .map(r -> bookRepository.findById(r.getBookId()).orElse(null))
+                .filter(b -> b != null)
+                .toList();
+    }
+
+    // Check earliest availability date for a book
+    public LocalDate checkAvailability(Long bookId) {
+        Book book = bookRepository.findById(bookId).orElse(null);
+        if (book == null) return null;
+        if (book.getAvailableCopies() > 0) return LocalDate.now();
+
+        List<BorrowingRecord> active = recordRepository.findByBookIdAndReturnDateIsNull(bookId);
+        return active.stream()
+                .map(BorrowingRecord::getDueDate)
+                .filter(d -> d != null)
+                .min(LocalDate::compareTo)
+                .orElse(null);
     }
 }

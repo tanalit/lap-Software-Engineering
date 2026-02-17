@@ -66,11 +66,6 @@ public class BorrowingRecord {
         this.memberId = memberId;
     }
 
-    // Explicit consistent setter
-    public void setMemberId(Long memberId) {
-        this.memberId = memberId;
-    }
-
     public LocalDate getBorrowDate() {
         return borrowDate;
     }

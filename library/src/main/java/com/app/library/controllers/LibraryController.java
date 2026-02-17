@@ -113,7 +113,7 @@ public class LibraryController {
     // Update a member
     @PutMapping("/members/{id}")
     public ResponseEntity<Member> updateMember(@PathVariable Long id, @RequestBody Member updatedMember) {
-        if (libraryService.getMemberById(id) != null) {
+        if (libraryService.getMemberById(id) == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         updatedMember.setId(id);
